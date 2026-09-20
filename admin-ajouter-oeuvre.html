@@ -430,10 +430,10 @@ document.getElementById("genBtn").addEventListener("click",function(){
       if(img){
         var sx=rect.x*scaleX, sy=rect.y*scaleY, sw=rect.w*scaleX, sh=rect.h*scaleY;
         var imgs={
-          sm:resizedDataURL(img,900,0.78),
-          lg:resizedDataURL(img,1900,0.85),
-          xl:resizedDataURL(img,2600,0.84),
-          dt:croppedDataURL(img,sx,sy,sw,sh,900,0.84)
+          sm:resizedDataURL(img,900,0.8),
+          lg:resizedDataURL(img,2100,0.87),
+          xl:resizedDataURL(img,3400,0.88),
+          dt:croppedDataURL(img,sx,sy,sw,sh,1100,0.87)
         };
         text=upsertImg(text,id,imgs);
         Object.keys(imgs).forEach(function(k){
