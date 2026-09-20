@@ -72,6 +72,18 @@ details summary{cursor:pointer;font-weight:700}
 pre{white-space:pre-wrap;word-break:break-all;font-size:11px;max-height:200px;overflow:auto;background:var(--paper);border:1px solid var(--ink-2);padding:8px}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+.admin-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-top:16px}
+.gcard{border:var(--line) solid var(--ink);background:var(--paper);box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column}
+.gcard .thumb{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#fff;border-bottom:var(--line) solid var(--ink)}
+.gcard .gbody{padding:8px 10px;display:flex;flex-direction:column;gap:2px;flex:1}
+.gcard .gt{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:13.5px;line-height:1.25}
+.gcard .gp{font-size:12px;color:var(--ink-2)}
+.gcard .gsold{display:inline-block;font-size:10px;font-weight:700;background:var(--err);color:#fff;padding:2px 6px;border-radius:2px;margin-top:3px;width:fit-content}
+.gcard .gbtns{display:flex;gap:6px;padding:0 10px 10px}
+.gcard .gbtns button{flex:1;font-size:12px;padding:6px 4px;border:var(--line) solid var(--ink);background:var(--paper);cursor:pointer;font-family:"Bricolage Grotesque",sans-serif;font-weight:700}
+.gcard .gbtns .gdel{color:var(--err);border-color:var(--err)}
+.gcard .gbtns button:active{transform:translate(2px,2px)}
 </style>
 </head>
 <body>
@@ -84,10 +96,9 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:11px;max-height:200px;ov
     <p class="hint">Le fichier <code>index.html</code> que tu utilises en ce moment (celui du zip, ou celui déployé sur Vercel).</p>
     <input type="file" id="siteFile" accept=".html">
     <div id="siteStatus" class="hint"></div>
-    <div class="field" style="margin-top:14px">
-      <label for="pickWork">Que veux-tu faire ?</label>
-      <select id="pickWork" disabled><option value="__new__">➕ Ajouter une nouvelle œuvre</option></select>
-    </div>
+    <div class="admin-gallery" id="existingGallery" style="display:none"></div>
+    <button class="btn ghost" id="addNewBtn" type="button" style="display:none;margin-top:6px">➕ Ajouter une nouvelle œuvre</button>
+    <div id="modeStatus" class="ok" style="display:none"></div>
   </div>
 
   <div class="step">
@@ -220,6 +231,52 @@ function parseWorks(text){
   try{ return (new Function("return ["+body+"]"))(); }
   catch(e){ throw new Error("Impossible de lire la liste des œuvres existantes ("+e.message+")"); }
 }
+function parseImg(text){
+  var b=findBlock(text,"var IMG={","\n};");
+  var body=text.slice(b.contentStart,b.end);
+  try{ return (new Function("return {"+body+"}"))(); }
+  catch(e){ throw new Error("Impossible de lire les images existantes ("+e.message+")"); }
+}
+function removeEntry(body,idx,absEnd){
+  var hasComma=body[absEnd]===',';
+  if(hasComma){
+    var rs=body.lastIndexOf('\n',idx); if(rs<0)rs=0;
+    return body.slice(0,rs)+body.slice(absEnd+1);
+  }else{
+    var rs2=body.lastIndexOf(',',idx); if(rs2<0)rs2=0;
+    return body.slice(0,rs2)+body.slice(absEnd);
+  }
+}
+function deleteWorks(text,id){
+  var b=findBlock(text,"var WORKS=[","\n];");
+  var body=text.slice(b.contentStart,b.end);
+  var idx=body.indexOf('{id:"'+id+'"');
+  if(idx<0)throw new Error("œuvre introuvable : "+id);
+  var nextIdx=body.indexOf('\n {id:"',idx+1);
+  var boundary=nextIdx<0?body.length:nextIdx;
+  var lastBrace=body.slice(idx,boundary).lastIndexOf('}');
+  var absEnd=idx+lastBrace+1;
+  var newBody=removeEntry(body,idx,absEnd);
+  return text.slice(0,b.contentStart)+newBody+text.slice(b.end);
+}
+function deleteImg(text,id){
+  var b=findBlock(text,"var IMG={","\n};");
+  var body=text.slice(b.contentStart,b.end);
+  var idx=body.indexOf(id+':{');
+  if(idx<0)return text; /* pas grave si déjà absent */
+  var nextIdx=body.indexOf('\n  ',idx+1);
+  var boundary=nextIdx<0?body.length:nextIdx;
+  var lastBrace=body.slice(idx,boundary).lastIndexOf('}');
+  var absEnd=idx+lastBrace+1;
+  var newBody=removeEntry(body,idx,absEnd);
+  return text.slice(0,b.contentStart)+newBody+text.slice(b.end);
+}
+function downloadText(text,filename){
+  var blob=new Blob([text],{type:"text/html"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url)},4000);
+}
 
 /* ---------- état ---------- */
 var siteText=null, works=[], editingId=null;
@@ -231,6 +288,7 @@ function showErr(msg){var b=document.getElementById("errBox");b.style.display="b
 function clearErr(){document.getElementById("errBox").style.display="none"}
 
 /* ---------- étape 1 : charger index.html ---------- */
+var imgs={};
 document.getElementById("siteFile").addEventListener("change",function(e){
   var file=e.target.files[0]; if(!file)return;
   var r=new FileReader();
@@ -238,42 +296,67 @@ document.getElementById("siteFile").addEventListener("change",function(e){
     try{
       siteText=r.result;
       works=parseWorks(siteText);
-      document.getElementById("siteStatus").textContent="Chargé : "+works.length+" œuvre(s) trouvée(s).";
-      var sel=document.getElementById("pickWork");
-      sel.innerHTML='<option value="__new__">➕ Ajouter une nouvelle œuvre</option>';
-      works.forEach(function(w){
-        var o=document.createElement("option");o.value=w.id;o.textContent="✎ Modifier : "+w.t+" ("+w.id+")";
-        sel.appendChild(o);
-      });
-      sel.disabled=false;
-      updateGenBtn();
+      imgs=parseImg(siteText);
+      document.getElementById("siteStatus").textContent="Chargé : "+works.length+" œuvre(s) trouvée(s). Clique sur une œuvre pour la modifier ou la supprimer, ou ajoute-en une nouvelle.";
+      renderGallery();
+      document.getElementById("addNewBtn").style.display="inline-block";
+      clearErr();
+      selectWork(null);
     }catch(err){
       siteText=null;
       document.getElementById("siteStatus").textContent="";
+      document.getElementById("existingGallery").style.display="none";
+      document.getElementById("addNewBtn").style.display="none";
       showErr("Ce fichier ne ressemble pas à l'index.html de Lavis Studio : "+err.message);
     }
   };
   r.readAsText(file,"utf-8");
 });
 
-document.getElementById("pickWork").addEventListener("change",function(){
+function renderGallery(){
+  var box=document.getElementById("existingGallery");
+  box.innerHTML="";
+  if(!works.length){box.style.display="none";return}
+  box.style.display="grid";
+  works.forEach(function(w){
+    var card=document.createElement("div");card.className="gcard";
+    var thumb=(imgs[w.id]&&imgs[w.id].sm)?imgs[w.id].sm:"";
+    var priceLine=(w.orig!=null?("Original "+w.orig+" € · "):"")+"Tirage "+w.print+" €";
+    card.innerHTML=
+      '<img class="thumb" src="'+thumb+'" alt="">'+
+      '<div class="gbody"><div class="gt"></div><div class="gp"></div></div>'+
+      '<div class="gbtns"><button type="button" class="gedit">Modifier</button><button type="button" class="gdel">Supprimer</button></div>';
+    card.querySelector(".gt").textContent=w.t;
+    card.querySelector(".gp").textContent=priceLine;
+    if(w.sold){var s=document.createElement("span");s.className="gsold";s.textContent="Vendue";card.querySelector(".gbody").appendChild(s)}
+    card.querySelector(".gedit").addEventListener("click",function(){selectWork(w.id)});
+    card.querySelector(".gdel").addEventListener("click",function(){handleDelete(w.id,w.t)});
+    box.appendChild(card);
+  });
+}
+
+document.getElementById("addNewBtn").addEventListener("click",function(){selectWork(null)});
+
+function selectWork(id){
   clearErr();
-  var v=this.value;
   var idInput=document.getElementById("f-id");
-  if(v==="__new__"){
+  var status=document.getElementById("modeStatus");
+  if(id==null){
     editingId=null;
     idInput.disabled=false;idInput.value="";
-    ["f-t","f-cat","f-d","f-alt"].forEach(function(id){document.getElementById(id).value=""});
+    ["f-t","f-cat","f-d","f-alt"].forEach(function(fid){document.getElementById(fid).value=""});
     document.getElementById("f-format").value="A5 — 21 × 14,8 cm";
     document.getElementById("f-hasorig").checked=false;
     document.getElementById("f-orig").value="";document.getElementById("f-orig").disabled=true;
     document.getElementById("f-print").value="60";
     document.getElementById("f-sold").checked=false;
     document.getElementById("soldRow").style.display="none";
-    document.getElementById("imgFile").required=true;
+    status.style.display="block";status.textContent="Mode : nouvelle œuvre.";
+    document.getElementById("imgFile").value="";
+    resetImageState();
   }else{
-    var w=works.filter(function(x){return x.id===v})[0]; if(!w)return;
-    editingId=v;
+    var w=works.filter(function(x){return x.id===id})[0]; if(!w)return;
+    editingId=id;
     idInput.disabled=true;idInput.value=w.id;
     document.getElementById("f-t").value=w.t||"";
     document.getElementById("f-cat").value=w.cat||"";
@@ -287,9 +370,39 @@ document.getElementById("pickWork").addEventListener("change",function(){
     document.getElementById("f-print").value=w.print!=null?w.print:60;
     document.getElementById("f-sold").checked=!!w.sold;
     document.getElementById("soldRow").style.display=hasOrig?"flex":"none";
+    status.style.display="block";status.textContent="Mode : modification de « "+w.t+" ». Laisse l'image vide pour ne pas y toucher.";
+    document.getElementById("imgFile").value="";
+    resetImageState();
   }
   updateGenBtn();
-});
+  document.querySelectorAll(".step")[1].scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function resetImageState(){
+  img=null;
+  document.getElementById("imgStatus").textContent="";
+  document.getElementById("cropOuter").style.display="none";
+  document.getElementById("cropControls").style.display="none";
+  document.getElementById("previewPair").style.display="none";
+}
+
+function handleDelete(id,title){
+  if(!confirm('Supprimer définitivement « '+title+' » ?\n\nUn nouveau index.html sera téléchargé, sans cette œuvre. Il faudra le remettre à la place de l\'ancien puis redéployer.')) return;
+  console.log("DEBUG handleDelete id=",id,"siteText typeof=",typeof siteText,"len=",siteText&&siteText.length);
+  try{
+    var text=deleteWorks(siteText,id);
+    text=deleteImg(text,id);
+    siteText=text;
+    works=parseWorks(siteText);
+    imgs=parseImg(siteText);
+    renderGallery();
+    if(editingId===id) selectWork(null);
+    downloadText(siteText,"index.html");
+    document.getElementById("siteStatus").textContent="« "+title+" » supprimée. Nouveau fichier téléchargé — remplace l'ancien index.html par celui-ci.";
+  }catch(err){
+    showErr("Erreur pendant la suppression : "+err.message);
+  }
+}
 document.getElementById("f-hasorig").addEventListener("change",function(){
   document.getElementById("f-orig").disabled=!this.checked;
   document.getElementById("soldRow").style.display=this.checked?"flex":"none";
@@ -429,19 +542,24 @@ document.getElementById("genBtn").addEventListener("click",function(){
       var log=[];
       if(img){
         var sx=rect.x*scaleX, sy=rect.y*scaleY, sw=rect.w*scaleX, sh=rect.h*scaleY;
-        var imgs={
+        var newImgs={
           sm:resizedDataURL(img,900,0.8),
           lg:resizedDataURL(img,2100,0.87),
           xl:resizedDataURL(img,3400,0.88),
           dt:croppedDataURL(img,sx,sy,sw,sh,1100,0.87)
         };
-        text=upsertImg(text,id,imgs);
-        Object.keys(imgs).forEach(function(k){
-          log.push(k+" : "+Math.round(imgs[k].length*0.73/1024)+" Ko");
+        text=upsertImg(text,id,newImgs);
+        Object.keys(newImgs).forEach(function(k){
+          log.push(k+" : "+Math.round(newImgs[k].length*0.73/1024)+" Ko");
         });
       }else{
         log.push("Image inchangée (aucun nouveau fichier fourni).");
       }
+
+      siteText=text;
+      works=parseWorks(siteText);
+      imgs=parseImg(siteText);
+      renderGallery();
 
       var blob=new Blob([text],{type:"text/html"});
       var url=URL.createObjectURL(blob);
