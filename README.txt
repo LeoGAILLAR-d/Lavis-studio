@@ -1,4 +1,4 @@
-LAVIS STUDIO — site livré (v4)
+LAVIS STUDIO — site livré (v6)
 ================================
 
 index.html
@@ -7,21 +7,31 @@ index.html
   hébergeur statique (Netlify, Vercel, OVH, o2switch, etc.) en le
   renommant "index.html" à la racine.
 
+admin-ajouter-oeuvre.html
+  Outil personnel (pas pour les visiteurs du site) pour :
+    - ajouter une nouvelle œuvre (titre, description, prix, format)
+    - modifier une œuvre existante (prix, texte, marquer "vendue")
+    - choisir toi-même, à la souris, la zone de l'image utilisée
+      pour le zoom "détail" dans la fiche œuvre
+  Utilisation : ouvre ce fichier dans ton navigateur (double-clic),
+  charge ton index.html actuel, remplis le formulaire, ajuste le
+  cadre de zoom sur l'image (fichier JPG/PNG — pas de TIFF, les
+  navigateurs ne le lisent pas), clique "Générer le nouveau
+  index.html", télécharge-le, et remplace l'ancien avant de
+  redéployer. Rien n'est envoyé sur internet, tout se passe dans
+  ton navigateur.
+
 assets/
-  Tes deux scans, compressés en WebP, en 4 tailles chacun :
-  sm (grille), lg (fiche œuvre), dt (détail zoomé pré-recadré),
-  xl (haute définition, utilisée pour le zoom interactif).
-  Fournis pour référence — index.html n'en a pas besoin pour
-  fonctionner, les images y sont déjà intégrées.
+  Tes scans actuels, compressés en WebP, en 4 tailles chacun
+  (sm, lg, dt, xl). Fournis pour référence — index.html n'en a pas
+  besoin pour fonctionner.
 
-Nouveauté de cette version :
-  Cliquer sur l'image d'une œuvre ouvre une vue plein écran avec
-  zoom interactif : molette ou boutons +/− sur ordinateur, pincement
-  à deux doigts sur mobile, glisser pour se déplacer dans l'image.
+Nouveautés de cette version :
+- le bouton "Payer" tente d'appeler /api/create-checkout-session
+  (Stripe) ; tant que cette fonction n'existe pas encore côté
+  serveur, un mode démonstration s'affiche à la place, sans erreur.
+- outil admin-ajouter-oeuvre.html pour gérer le catalogue toi-même.
 
-Points encore à trancher :
-- le format réel de chaque œuvre (actuellement A5 par défaut)
-- les titres définitifs
-- le seuil de livraison offerte (150 € actuellement)
-- brancher un vrai formulaire (Formspree ou équivalent) à la place
-  du mailto, et Stripe/PayPal pour un vrai paiement
+À venir (prochaine étape avec Claude) :
+- la fonction serverless /api/create-checkout-session.js (Stripe)
+- le guide de déploiement Vercel pas à pas
