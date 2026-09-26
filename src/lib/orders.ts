@@ -4,6 +4,7 @@ import { db, schema } from "@/db";
 import { ARTIST_EMAIL, sendMail } from "@/lib/email";
 import { siteUrl } from "@/lib/format";
 import { SHIPPING_ZONES, type ShippingZone } from "@/lib/shipping";
+import { getSettings } from "@/lib/settings";
 import { OrderConfirmationEmail, SaleAlertEmail, type OrderMailData } from "@/emails/templates";
 
 export async function getOrderWithItems(orderId: string) {
@@ -33,6 +34,9 @@ export async function sendOrderEmails(orderId: string, { paid }: { paid: boolean
     ].filter(Boolean),
     url: o.userId ? `${siteUrl()}/compte` : `${siteUrl()}/commande/confirmation/${o.id}`,
     paid,
+    delay: o.items.some((i) => i.variant === "print")
+      ? `sous ${(await getSettings()).printLeadTime} (les tirages sont imprimés, puis signés et numérotés à la main)`
+      : "sous 3 jours ouvrés",
   };
   await Promise.all([
     sendMail({

@@ -13,10 +13,11 @@ type Props = {
   originalSold: boolean;
   originalInCart: boolean;
   format: string;
+  printLeadTime: string;
 };
 
 /** Sélecteur de variante : l'original est désactivé s'il est vendu ou déjà dans le panier. */
-export function AddToCart({ artworkId, originalPrice, printPrice, originalSold, originalInCart, format }: Props) {
+export function AddToCart({ artworkId, originalPrice, printPrice, originalSold, originalInCart, format, printLeadTime }: Props) {
   const originalAvailable = originalPrice != null && !originalSold && !originalInCart;
   const [variant, setVariant] = useState<"original" | "print">(originalAvailable ? "original" : "print");
   const [state, action] = useActionState(addToCart, undefined);
@@ -64,6 +65,17 @@ export function AddToCart({ artworkId, originalPrice, printPrice, originalSold, 
           <span className="price">{eur(printPrice)}</span>
         </label>
       </fieldset>
+      {variant === "print" && (
+        <p className="notice small" style={{ marginBottom: 16 }}>
+          <strong>Tirage réalisé à la commande :</strong> je le fais imprimer, je le signe et le numérote à la main, puis je
+          l&apos;expédie. Comptez <strong>{printLeadTime}</strong> avant l&apos;envoi.
+        </p>
+      )}
+      {variant === "original" && originalPrice != null && !originalSold && (
+        <p className="small muted" style={{ marginBottom: 16 }}>
+          L&apos;original est expédié sous 3 jours ouvrés après paiement.
+        </p>
+      )}
       {variant === "print" && (
         <label className="field" style={{ maxWidth: 140, marginBottom: 16 }}>
           Quantité

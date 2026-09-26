@@ -188,6 +188,8 @@ export const siteSettings = pgTable("site_settings", {
   shippingFr: money("shipping_fr").notNull().default(6.9),
   shippingEu: money("shipping_eu").notNull().default(12.9),
   shippingWorld: money("shipping_world").notNull().default(19.9),
+  // Délai affiché pour les tirages (commandés à l'imprimeur, signés puis expédiés)
+  printLeadTime: text("print_lead_time").notNull().default("1 à 2 semaines"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

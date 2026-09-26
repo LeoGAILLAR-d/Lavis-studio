@@ -19,6 +19,7 @@ const settingsSchema = z.object({
   shippingFr: z.coerce.number().min(0).max(1000),
   shippingEu: z.coerce.number().min(0).max(1000),
   shippingWorld: z.coerce.number().min(0).max(1000),
+  printLeadTime: z.string().trim().min(1, "Champ requis").max(60),
 });
 
 export async function updateSettings(_prev: FormState, formData: FormData): Promise<FormState> {

@@ -51,6 +51,11 @@ export default async function CheckoutPage() {
                 <strong>{eur(l.unitPrice * l.quantity)}</strong>
               </div>
             ))}
+          {cart.lines.some((l) => l.variant === "print") && (
+            <p className="small muted" style={{ marginTop: 12 }}>
+              Tirages réalisés à la commande : envoi sous {s.printLeadTime}.
+            </p>
+          )}
           <p className="small" style={{ marginTop: 12 }}>
             <Link href="/panier">Modifier le panier</Link>
           </p>

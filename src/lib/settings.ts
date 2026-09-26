@@ -11,6 +11,7 @@ const DEFAULTS = {
   shippingFr: 6.9,
   shippingEu: 12.9,
   shippingWorld: 19.9,
+  printLeadTime: "1 à 2 semaines",
   updatedAt: new Date(0),
 };
 

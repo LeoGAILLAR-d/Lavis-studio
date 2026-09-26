@@ -5,6 +5,7 @@ import { AddToCart } from "@/components/AddToCart";
 import { ArtworkViewer } from "@/components/ArtworkViewer";
 import { artworkState, getArtworkBySlug, STATE_LABEL } from "@/lib/artworks";
 import { cartHasOriginal } from "@/lib/cart";
+import { getSettings } from "@/lib/settings";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -18,7 +19,7 @@ export default async function ArtworkPage({ params }: Props) {
   const a = await getArtworkBySlug((await params).slug);
   if (!a) notFound();
   const state = artworkState(a);
-  const inCart = a.originalPrice != null ? await cartHasOriginal(a.id) : false;
+  const [inCart, settings] = await Promise.all([a.originalPrice != null ? cartHasOriginal(a.id) : false, getSettings()]);
 
   return (
     <div className="wrap section">
@@ -46,6 +47,7 @@ export default async function ArtworkPage({ params }: Props) {
             originalSold={a.isOriginalSold}
             originalInCart={inCart}
             format={a.format}
+            printLeadTime={settings.printLeadTime}
           />
           <p className="small muted" style={{ marginTop: 16 }}>
             Hésitation sur la taille ? <Link href="/guide-des-formats">Comparer les formats A5, A4 et A3</Link>.

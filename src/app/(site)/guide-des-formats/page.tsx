@@ -36,7 +36,7 @@ export default async function GuidePage() {
     },
     {
       q: "Quels sont les délais et frais de livraison ?",
-      a: `Expédition sous 3 jours ouvrés. France ${eur(s.shippingFr)}${s.freeShippingThreshold > 0 ? ` (offerte dès ${eur(s.freeShippingThreshold)})` : ""}, Union européenne ${eur(s.shippingEu)}, reste du monde ${eur(s.shippingWorld)}.`,
+      a: `Les originaux partent sous 3 jours ouvrés. Les tirages sont réalisés à la commande : je les fais imprimer, je les signe et les numérote à la main, puis je les expédie — comptez ${s.printLeadTime} avant l'envoi. Frais de port : France ${eur(s.shippingFr)}${s.freeShippingThreshold > 0 ? ` (offerte dès ${eur(s.freeShippingThreshold)})` : ""}, Union européenne ${eur(s.shippingEu)}, reste du monde ${eur(s.shippingWorld)}.`,
     },
     { q: "Puis-je retourner une œuvre ?", a: "Oui, vous disposez de 14 jours de rétractation à réception (hors commandes sur-mesure)." },
   ];

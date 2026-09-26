@@ -1,0 +1,1 @@
+ALTER TABLE "site_settings" ADD COLUMN "print_lead_time" text DEFAULT '1 à 2 semaines' NOT NULL;

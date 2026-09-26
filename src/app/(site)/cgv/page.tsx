@@ -47,7 +47,9 @@ export default async function Terms() {
 
       <h2>6. Livraison</h2>
       <p>
-        Expédition sous 3 jours ouvrés après paiement, en pochette rigide, avec numéro de suivi. Tarifs : France métropolitaine{" "}
+        Les œuvres originales sont expédiées sous 3 jours ouvrés après paiement. Les tirages sont réalisés à la commande (impression,
+        signature et numérotation à la main) et expédiés sous {s.printLeadTime} après paiement. Envoi en pochette rigide, avec numéro de
+        suivi. Tarifs : France métropolitaine{" "}
         {eur(s.shippingFr)}
         {s.freeShippingThreshold > 0 && ` (offerte dès ${eur(s.freeShippingThreshold)} d'achat)`}, Union européenne {eur(s.shippingEu)},
         reste du monde {eur(s.shippingWorld)}. Les délais d&apos;acheminement dépendent du transporteur. Hors Union européenne, des droits

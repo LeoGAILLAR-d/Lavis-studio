@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db, schema } from "@/db";
 import { eur } from "@/lib/format";
+import { getSettings } from "@/lib/settings";
 import { paymentsEnabled } from "@/lib/payment";
 import { resumePayment } from "@/actions/payment";
 
@@ -25,6 +26,9 @@ export default async function ConfirmationPage({
   if (!order) notFound();
 
   const online = paymentsEnabled();
+  const { printLeadTime } = await getSettings();
+  const hasPrints = order.items.some((i) => i.variant === "print");
+  const delay = hasPrints ? `sous ${printLeadTime} (les tirages sont imprimés, signés et numérotés à la main pour vous)` : "sous 3 jours ouvrés";
   const paid = order.paymentStatus === "paid";
   const cancelled = order.status === "cancelled";
   const awaiting = online && !paid && !cancelled;
@@ -77,8 +81,8 @@ export default async function ConfirmationPage({
       {!cancelled && (
         <p style={{ marginTop: 24 }}>
           {paid || online
-            ? "Votre envoi est préparé sous 3 jours ouvrés après paiement. Vous recevrez le numéro de suivi par e-mail."
-            : "L'atelier vous contacte très vite pour le règlement, puis prépare votre envoi (sous 3 jours ouvrés). Vous recevrez le numéro de suivi par e-mail."}
+            ? `Votre commande part ${delay} après paiement. Vous recevrez le numéro de suivi par e-mail.`
+            : `L'atelier vous contacte très vite pour le règlement ; votre commande part ensuite ${delay}. Vous recevrez le numéro de suivi par e-mail.`}
         </p>
       )}
       <Link href="/" className="btn ghost">

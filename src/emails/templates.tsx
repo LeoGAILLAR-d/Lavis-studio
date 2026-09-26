@@ -39,6 +39,8 @@ export type OrderMailData = {
   address: string[];
   url?: string;
   paid?: boolean;
+  /** Délai d'envoi annoncé (tirages réalisés à la commande) */
+  delay?: string;
 };
 
 function OrderLines({ o }: { o: OrderMailData }) {
@@ -65,8 +67,8 @@ export function OrderConfirmationEmail({ o }: { o: OrderMailData }) {
       <Text>
         Référence : <strong>{o.orderNumber}</strong>.{" "}
         {o.paid
-          ? "Votre paiement est bien reçu. Je prépare votre envoi (expédition sous 3 jours ouvrés, en pochette rigide) et vous enverrai le numéro de suivi."
-          : "Je vous recontacte très vite pour le règlement, puis je prépare votre envoi (expédition sous 3 jours ouvrés après paiement, en pochette rigide)."}
+          ? `Votre paiement est bien reçu. Votre commande part ${o.delay ?? "sous 3 jours ouvrés"}, en pochette rigide, et je vous enverrai le numéro de suivi.`
+          : `Je vous recontacte très vite pour le règlement ; votre commande part ensuite ${o.delay ?? "sous 3 jours ouvrés"}, en pochette rigide.`}
       </Text>
       <OrderLines o={o} />
       {o.url && (

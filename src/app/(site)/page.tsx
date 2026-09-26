@@ -30,7 +30,7 @@ export default async function Home() {
         <div className="perks">
           <span className="tag">Pièces uniques peintes à la main</span>
           <span className="tag">Tirages signés et numérotés</span>
-          <span className="tag">Expédition sous 3 jours ouvrés</span>
+          <span className="tag">Tirages imprimés et signés à la commande</span>
         </div>
       </section>
 

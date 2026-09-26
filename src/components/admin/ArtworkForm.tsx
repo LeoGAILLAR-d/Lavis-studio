@@ -106,6 +106,46 @@ function ImageAndFocus({ initial }: { initial: A }) {
   );
 }
 
+const FORMATS = [
+  "A6 — 14,8 × 10,5 cm",
+  "A5 — 21 × 14,8 cm",
+  "A4 — 29,7 × 21 cm",
+  "A3 — 42 × 29,7 cm",
+  "A2 — 59,4 × 42 cm",
+  "Carré 20 × 20 cm",
+  "Carré 30 × 30 cm",
+  "30 × 40 cm",
+  "40 × 50 cm",
+  "50 × 70 cm",
+];
+const OTHER = "__autre__";
+
+/** Formats prédéfinis + saisie libre (« Autre format… »). */
+function FormatPicker({ initial }: { initial?: string }) {
+  const start = initial ?? FORMATS[1];
+  const [choice, setChoice] = useState(FORMATS.includes(start) ? start : OTHER);
+  const [custom, setCustom] = useState(FORMATS.includes(start) ? "" : start);
+  const err = useFieldError("format");
+  return (
+    <div className="field">
+      Format *
+      <select value={choice} onChange={(e) => setChoice(e.target.value)} aria-label="Format">
+        {FORMATS.map((f) => (
+          <option key={f} value={f}>
+            {f}
+          </option>
+        ))}
+        <option value={OTHER}>Autre format…</option>
+      </select>
+      {choice === OTHER && (
+        <input value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="Ex. 24 × 32 cm" maxLength={80} aria-label="Autre format" />
+      )}
+      <input type="hidden" name="format" value={choice === OTHER ? custom : choice} />
+      {err && <span className="err">{err}</span>}
+    </div>
+  );
+}
+
 export function ArtworkForm({ artwork = {}, categories }: { artwork?: A; categories: string[] }) {
   return (
     <ActionForm action={saveArtwork} className="form-grid">
@@ -113,7 +153,7 @@ export function ArtworkForm({ artwork = {}, categories }: { artwork?: A; categor
       <Field name="title" label="Titre" required defaultValue={artwork.title} maxLength={120} />
       <Field name="slug" label="Slug (URL)" defaultValue={artwork.slug} hint="Laisser vide pour le générer depuis le titre." />
       <Field name="category" label="Catégorie" required defaultValue={artwork.category} hint={categories.length ? `Existantes : ${categories.join(", ")}` : "Ex. Paysage, Architecture"} />
-      <Field name="format" label="Format" required defaultValue={artwork.format ?? "A5 — 21 × 14,8 cm"} />
+      <FormatPicker initial={artwork.format} />
       <Field name="description" label="Description" textarea required className="full" defaultValue={artwork.description} />
       <Field name="altText" label="Texte alternatif (accessibilité)" required className="full" defaultValue={artwork.altText} hint="Décrivez l'image pour les personnes malvoyantes." />
       <ImageAndFocus initial={artwork} />

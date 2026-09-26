@@ -43,7 +43,9 @@ export async function Footer() {
             <br />
             Reste du monde {eur(s.shippingWorld)}
             <br />
-            Expédition sous 3 jours ouvrés, pochette rigide
+            Originaux expédiés sous 3 jours ouvrés
+            <br />
+            Tirages réalisés à la commande : envoi sous {s.printLeadTime}
             <br />
             Rétractation 14 jours, hors sur-mesure
           </p>

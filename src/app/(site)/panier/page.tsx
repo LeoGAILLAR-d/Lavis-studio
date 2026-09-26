@@ -62,6 +62,12 @@ export default async function CartPage() {
               <strong className="sans">{eur(l.unitPrice * l.quantity)}</strong>
             </div>
           ))}
+          {cart.lines.some((l) => l.variant === "print" && l.available) && (
+            <p className="notice small" style={{ marginTop: 20 }}>
+              Les tirages sont réalisés à la commande (impression, signature et numérotation à la main) : comptez{" "}
+              <strong>{s.printLeadTime}</strong> avant l&apos;envoi. Les originaux partent sous 3 jours ouvrés.
+            </p>
+          )}
           <div className="totals" style={{ marginTop: 24, maxWidth: 360, marginLeft: "auto" }}>
             <span>Sous-total</span>
             <span>{eur(cart.subtotal)}</span>
