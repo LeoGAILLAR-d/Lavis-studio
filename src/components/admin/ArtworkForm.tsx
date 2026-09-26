@@ -16,6 +16,7 @@ type A = {
   imageUrl?: string;
   zoomX?: number;
   zoomY?: number;
+  zoomScale?: number;
   originalPrice?: number | null;
   printPrice?: number;
   isOriginalSold?: boolean;
@@ -27,6 +28,10 @@ function ImageAndFocus({ initial }: { initial: A }) {
   const [url, setUrl] = useState(initial.imageUrl ?? "");
   const [x, setX] = useState(initial.zoomX ?? 50);
   const [y, setY] = useState(initial.zoomY ?? 50);
+  const [scale, setScale] = useState(initial.zoomScale ?? 2.5);
+  const [natW, setNatW] = useState<number | null>(null);
+  // Zoom conseillé : ~1 000 px affichés par « fois » de zoom sans pixellisation visible
+  const advised = natW ? Math.max(1, Math.min(6, Math.floor((natW / 1000) * 2) / 2)) : null;
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -65,6 +70,7 @@ function ImageAndFocus({ initial }: { initial: A }) {
       <input type="hidden" name="imageUrl" value={url} />
       <input type="hidden" name="zoomX" value={x} />
       <input type="hidden" name="zoomY" value={y} />
+      <input type="hidden" name="zoomScale" value={scale} />
       {url && (
         <div className="grid-2" style={{ alignItems: "start" }}>
           <div>
@@ -73,7 +79,7 @@ function ImageAndFocus({ initial }: { initial: A }) {
             </p>
             <div className="picker" onClick={pick}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img ref={imgRef} src={url} alt="Aperçu du scan" />
+              <img ref={imgRef} src={url} alt="Aperçu du scan" onLoad={(e) => setNatW(e.currentTarget.naturalWidth)} />
               <span className="dot" style={{ left: `${x}%`, top: `${y}%` }} />
             </div>
             <div className="form-grid" style={{ marginTop: 12 }}>
@@ -84,6 +90,20 @@ function ImageAndFocus({ initial }: { initial: A }) {
               <label className="field">
                 Vertical : {y} %
                 <input type="range" min={0} max={100} value={y} onChange={(e) => setY(+e.target.value)} />
+              </label>
+              <label className="field full">
+                Puissance du zoom : × {scale.toFixed(1)}
+                <input type="range" min={1} max={6} step={0.5} value={scale} onChange={(e) => setScale(+e.target.value)} />
+                <span className="hint">
+                  Détail de la fiche et zoom plein écran maximal.
+                  {natW && advised != null && (
+                    <>
+                      {" "}
+                      Image de {natW} px de large : zoom conseillé ≤ × {advised.toFixed(1)}
+                      {scale > advised && <strong style={{ color: "var(--danger)" }}> — risque de pixellisation</strong>}.
+                    </>
+                  )}
+                </span>
               </label>
             </div>
           </div>
@@ -96,7 +116,7 @@ function ImageAndFocus({ initial }: { initial: A }) {
               <img
                 src={url}
                 alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: `${x}% ${y}%`, transform: "scale(2.2)", transformOrigin: `${x}% ${y}%` }}
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: `${x}% ${y}%`, transform: `scale(${scale})`, transformOrigin: `${x}% ${y}%` }}
               />
             </div>
           </div>

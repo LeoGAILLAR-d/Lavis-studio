@@ -4,6 +4,7 @@ import {
   boolean,
   index,
   integer,
+  real,
   jsonb,
   numeric,
   pgEnum,
@@ -84,6 +85,8 @@ export const artworks = pgTable(
     imageUrl: text("image_url").notNull(),
     zoomX: integer("zoom_x").notNull().default(50),
     zoomY: integer("zoom_y").notNull().default(50),
+    // Puissance du zoom (1 = aucun, 6 = maximum) : à réduire pour les images de faible résolution
+    zoomScale: real("zoom_scale").notNull().default(2.5),
     originalPrice: money("original_price"), // null = pas d'original à vendre
     printPrice: money("print_price").notNull(),
     isOriginalSold: boolean("is_original_sold").notNull().default(false),

@@ -15,6 +15,13 @@
       "when": 1790435945815,
       "tag": "0001_print_lead_time",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790438967996,
+      "tag": "0002_zoom_scale",
+      "breakpoints": true
     }
   ]
 }

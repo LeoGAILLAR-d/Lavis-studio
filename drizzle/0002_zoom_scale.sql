@@ -1,0 +1,1 @@
+ALTER TABLE "artworks" ADD COLUMN "zoom_scale" real DEFAULT 2.5 NOT NULL;

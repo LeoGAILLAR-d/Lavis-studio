@@ -4,7 +4,23 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Visualiseur HD : vue d'ensemble, détail centré sur (zoomX, zoomY), plein écran avec zoom molette / pincement. */
-export function ArtworkViewer({ src, alt, title, zoomX, zoomY }: { src: string; alt: string; title: string; zoomX: number; zoomY: number }) {
+export function ArtworkViewer({
+  src,
+  alt,
+  title,
+  zoomX,
+  zoomY,
+  zoomScale = 2.5,
+}: {
+  src: string;
+  alt: string;
+  title: string;
+  zoomX: number;
+  zoomY: number;
+  zoomScale?: number;
+}) {
+  // Zoom plein écran maximal = puissance réglée dans l'admin (évite la pixellisation des petites images)
+  const MAX = Math.max(1, zoomScale);
   const [open, setOpen] = useState(false);
   const [t, setT] = useState({ s: 1, x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
@@ -15,9 +31,9 @@ export function ArtworkViewer({ src, alt, title, zoomX, zoomY }: { src: string; 
     (focus: boolean) => {
       setOpen(true);
       // Ouvre directement zoomé sur le point de détail choisi par l'artiste
-      setT(focus ? { s: 2.5, x: (50 - zoomX) * 4, y: (50 - zoomY) * 3 } : { s: 1, x: 0, y: 0 });
+      setT(focus ? { s: MAX, x: (50 - zoomX) * 4, y: (50 - zoomY) * 3 } : { s: 1, x: 0, y: 0 });
     },
-    [zoomX, zoomY],
+    [zoomX, zoomY, MAX],
   );
 
   useEffect(() => {
@@ -27,7 +43,7 @@ export function ArtworkViewer({ src, alt, title, zoomX, zoomY }: { src: string; 
     closeBtn.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
-      if (e.key === "+" || e.key === "=") setT((v) => ({ ...v, s: Math.min(6, v.s * 1.3) }));
+      if (e.key === "+" || e.key === "=") setT((v) => ({ ...v, s: Math.min(MAX, v.s * 1.3) }));
       if (e.key === "-") setT((v) => ({ ...v, s: Math.max(1, v.s / 1.3) }));
     };
     window.addEventListener("keydown", onKey);
@@ -35,9 +51,9 @@ export function ArtworkViewer({ src, alt, title, zoomX, zoomY }: { src: string; 
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
-  }, [open]);
+  }, [open, MAX]);
 
-  const zoom = (f: number) => setT((v) => ({ ...v, s: Math.min(6, Math.max(1, v.s * f)) }));
+  const zoom = (f: number) => setT((v) => ({ ...v, s: Math.min(MAX, Math.max(1, v.s * f)) }));
 
   return (
     <div className="viewer">
@@ -51,7 +67,7 @@ export function ArtworkViewer({ src, alt, title, zoomX, zoomY }: { src: string; 
             alt=""
             fill
             sizes="640px"
-            style={{ objectFit: "cover", objectPosition: `${zoomX}% ${zoomY}%`, transform: "scale(2.2)", transformOrigin: `${zoomX}% ${zoomY}%` }}
+            style={{ objectFit: "cover", objectPosition: `${zoomX}% ${zoomY}%`, transform: `scale(${MAX})`, transformOrigin: `${zoomX}% ${zoomY}%` }}
           />
         </button>
         <p className="small muted" style={{ margin: 0, maxWidth: 160 }}>
@@ -99,7 +115,7 @@ export function ArtworkViewer({ src, alt, title, zoomX, zoomY }: { src: string; 
                 const [a, b] = [e.touches[0], e.touches[1]];
                 const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
                 const p = pinch.current;
-                setT((v) => ({ ...v, s: Math.min(6, Math.max(1, (p.s * d) / p.d)) }));
+                setT((v) => ({ ...v, s: Math.min(MAX, Math.max(1, (p.s * d) / p.d)) }));
               }
             }}
             onTouchEnd={() => (pinch.current = null)}

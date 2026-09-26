@@ -27,7 +27,7 @@ export default async function ArtworkPage({ params }: Props) {
         <Link href="/#galerie">← Retour à la galerie</Link>
       </p>
       <div className="grid-2" style={{ alignItems: "start" }}>
-        <ArtworkViewer src={a.imageUrl} alt={a.altText} title={a.title} zoomX={a.zoomX} zoomY={a.zoomY} />
+        <ArtworkViewer src={a.imageUrl} alt={a.altText} title={a.title} zoomX={a.zoomX} zoomY={a.zoomY} zoomScale={a.zoomScale} />
         <div>
           <span className={`tag ${state === "original" ? "available" : state}`}>{STATE_LABEL[state]}</span>
           <h1 style={{ marginTop: 12 }}>{a.title}</h1>

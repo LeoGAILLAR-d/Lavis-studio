@@ -77,6 +77,7 @@ export const artworkSchema = z.object({
   imageUrl: z.string().trim().min(1, "Image requise").max(1000),
   zoomX: z.coerce.number().int().min(0).max(100),
   zoomY: z.coerce.number().int().min(0).max(100),
+  zoomScale: z.coerce.number().min(1).max(6).default(2.5),
   originalPrice: z
     .union([z.literal(""), z.coerce.number().min(0).max(100000)])
     .transform((v) => (v === "" ? null : v)),
