@@ -1,4 +1,4 @@
-```typescript
+
 export const LEGAL = {
   brand: "Lavis Studio",
   owner: "Léo Gaillard",
@@ -20,4 +20,3 @@ export const LEGAL = {
   lastUpdate: "26 septembre 2026",
 };
 
-```
