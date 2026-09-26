@@ -93,7 +93,8 @@ p {
   padding: 0 16px;
 }
 .section {
-  padding: 48px 0;
+  padding-top: 48px;
+  padding-bottom: 48px;
 }
 .muted {
   color: var(--ink-2);
@@ -196,7 +197,13 @@ p {
 .nav .hide-sm {
   display: inline;
 }
+.logo {
+  white-space: nowrap;
+}
 @media (max-width: 640px) {
+  .logo {
+    font-size: 18px;
+  }
   .nav .hide-sm {
     display: none;
   }
@@ -205,6 +212,7 @@ p {
   }
 }
 .cart-pill {
+  white-space: nowrap;
   border: var(--line) solid var(--ink);
   padding: 4px 10px;
   box-shadow: var(--shadow-sm);
@@ -694,7 +702,8 @@ p {
 
 /* ---------- Hero ---------- */
 .hero {
-  padding: 56px 0 24px;
+  padding-top: 56px;
+  padding-bottom: 24px;
   text-align: center;
 }
 .hero .title {
