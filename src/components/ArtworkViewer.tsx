@@ -21,6 +21,8 @@ export function ArtworkViewer({
 }) {
   // Zoom plein écran maximal = puissance réglée dans l'admin (évite la pixellisation des petites images)
   const MAX = Math.max(1, zoomScale);
+  // × 1 dans l'admin = « pas de zoom »
+  const noZoom = MAX <= 1;
   const [open, setOpen] = useState(false);
   const [t, setT] = useState({ s: 1, x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
@@ -57,9 +59,17 @@ export function ArtworkViewer({
 
   return (
     <div className="viewer">
-      <button type="button" className="main" onClick={() => openAt(false)} aria-label={`Voir ${title} en plein écran avec zoom`}>
-        <Image src={src} alt={alt} width={1600} height={1200} sizes="(max-width: 900px) 100vw, 640px" priority style={{ width: "100%", height: "auto" }} />
-      </button>
+      {noZoom ? (
+        // Petite œuvre : image seule, sans zoom ni détail
+        <div className="main" style={{ cursor: "default" }}>
+          <Image src={src} alt={alt} width={1600} height={1200} sizes="(max-width: 900px) 100vw, 640px" priority style={{ width: "100%", height: "auto" }} />
+        </div>
+      ) : (
+        <button type="button" className="main" onClick={() => openAt(false)} aria-label={`Voir ${title} en plein écran avec zoom`}>
+          <Image src={src} alt={alt} width={1600} height={1200} sizes="(max-width: 900px) 100vw, 640px" priority style={{ width: "100%", height: "auto" }} />
+        </button>
+      )}
+      {!noZoom && (
       <div className="detail">
         <button type="button" className="crop" onClick={() => openAt(true)} aria-label="Voir le détail du trait" style={{ cursor: "zoom-in", padding: 0 }}>
           <Image
@@ -74,6 +84,7 @@ export function ArtworkViewer({
           Détail du trait. Cliquez pour zoomer en plein écran.
         </p>
       </div>
+      )}
 
       {open && (
         <div className="zoom-ov" role="dialog" aria-modal="true" aria-label={`Vue zoomée : ${title}`}>

@@ -92,10 +92,18 @@ function ImageAndFocus({ initial }: { initial: A }) {
                 <input type="range" min={0} max={100} value={y} onChange={(e) => setY(+e.target.value)} />
               </label>
               <label className="field full">
-                Puissance du zoom : × {scale.toFixed(1)}
-                <input type="range" min={1} max={6} step={0.5} value={scale} onChange={(e) => setScale(+e.target.value)} />
+                Puissance du zoom : {scale <= 1 ? "pas de zoom" : `× ${scale.toFixed(1)}`}
+                <span className="row" style={{ gap: 8 }}>
+                  <button type="button" className={scale <= 1 ? "btn sm" : "btn ghost sm"} onClick={() => setScale(1)}>
+                    Pas de zoom
+                  </button>
+                  <button type="button" className={scale > 1 ? "btn sm" : "btn ghost sm"} onClick={() => setScale(scale > 1 ? scale : 2.5)}>
+                    Zoom activé
+                  </button>
+                </span>
+                <input type="range" min={1} max={6} step={0.5} value={scale} onChange={(e) => setScale(+e.target.value)} aria-label="Puissance du zoom" />
                 <span className="hint">
-                  Détail de la fiche et zoom plein écran maximal.
+                  Détail de la fiche et zoom plein écran maximal. « Pas de zoom » : la fiche affiche seulement l&apos;image, sans vignette de détail ni plein écran.
                   {natW && advised != null && (
                     <>
                       {" "}
