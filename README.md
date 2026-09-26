@@ -49,6 +49,7 @@ Sans `RESEND_API_KEY`, les e-mails sont affichés dans la console. Sans `BLOB_RE
 | `RESEND_API_KEY`, `EMAIL_FROM` | Envoi des e-mails (domaine vérifié chez Resend) |
 | `ARTIST_EMAIL` | Destinataire des alertes de vente et demandes sur-mesure |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Anti-spam Cloudflare Turnstile (optionnel en local) |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Paiement en ligne (voir plus bas) |
 
 ## Mise en ligne sur Vercel
 
@@ -77,9 +78,26 @@ src/lib/            auth, panier, frais de port, validation Zod, e-mails, paieme
 
 Modifier le schéma : éditer `src/db/schema.ts`, puis `npm run db:generate` (nouvelle migration) et `npm run db:migrate`.
 
-## Paiement (phase suivante)
+## Paiement en ligne (Stripe)
 
-Tout passe par `src/lib/payment.ts` (`createPaymentRedirect`). La table `orders` contient déjà `payment_status` (`unpaid` / `paid` / `refunded`) et `payment_intent_id`. Pour Stripe : créer la Checkout Session dans cette fonction, ajouter un webhook `src/app/api/webhooks/stripe/route.ts` qui passe la commande en `paid`. En attendant, les commandes sont enregistrées « non payées » et le statut de paiement se met à jour à la main dans l'admin.
+Le paiement s'active dès que `STRIPE_SECRET_KEY` est renseignée ; sans clé, les commandes restent enregistrées « non payées » (règlement manuel).
+
+1. Créer un compte sur [stripe.com](https://stripe.com), compléter l'activation (identité, IBAN).
+2. *Développeurs → Clés API* : copier la **clé secrète** (`sk_test_…` pour tester, `sk_live_…` en production) dans `STRIPE_SECRET_KEY` (Vercel).
+3. *Développeurs → Webhooks → Ajouter un endpoint* : URL `https://VOTRE-SITE/api/webhooks/stripe`, événements
+   `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
+   `checkout.session.expired`, `charge.refunded`. Copier le **secret de signature** (`whsec_…`) dans `STRIPE_WEBHOOK_SECRET`.
+4. Redéployer.
+
+Fonctionnement : à la validation, la commande est créée (originaux réservés) puis le client est redirigé vers Stripe Checkout.
+Le webhook passe la commande en `paid` et envoie les e-mails. Si le paiement n'est pas finalisé sous 30 min, la commande est
+annulée et les originaux redeviennent disponibles. Un remboursement fait depuis Stripe passe la commande en `refunded`.
+Test : en mode `sk_test_`, carte `4242 4242 4242 4242`, date future, CVC quelconque.
+
+## Pages légales
+
+`/mentions-legales`, `/cgv` et `/confidentialite`. Les informations (SIRET, adresse, médiateur…) sont centralisées dans
+`src/lib/legal.ts` : remplacer chaque « [À COMPLÉTER] » avant la mise en vente.
 
 ## Écarts assumés par rapport au cahier des charges
 

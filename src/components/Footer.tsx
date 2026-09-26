@@ -26,6 +26,10 @@ export async function Footer() {
             <br />
             <Link href="/compte">Mon compte</Link>
           </p>
+          <p className="small">
+            <Link href="/mentions-legales">Mentions légales</Link> · <Link href="/cgv">CGV</Link> ·{" "}
+            <Link href="/confidentialite">Confidentialité</Link>
+          </p>
         </div>
         <div>
           <p className="sans" style={{ fontWeight: 800 }}>

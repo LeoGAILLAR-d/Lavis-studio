@@ -7,11 +7,9 @@ import { db, schema } from "@/db";
 import { getCart } from "@/lib/cart";
 import { getSettings } from "@/lib/settings";
 import { getCurrentUser } from "@/lib/session";
-import { shippingCost, SHIPPING_ZONES } from "@/lib/shipping";
+import { shippingCost } from "@/lib/shipping";
 import { checkoutSchema, fieldErrors, type FormState } from "@/lib/validation";
-import { ARTIST_EMAIL, sendMail } from "@/lib/email";
-import { OrderConfirmationEmail, SaleAlertEmail, type OrderMailData } from "@/emails/templates";
-import { siteUrl } from "@/lib/format";
+import { sendOrderEmails } from "@/lib/orders";
 import { createPaymentRedirect } from "@/lib/payment";
 
 class CheckoutError extends Error {}
@@ -106,32 +104,13 @@ export async function placeOrder(_prev: FormState, formData: FormData): Promise<
   }
   if (!order) return { message: "Une erreur est survenue, réessayez dans un instant." };
 
-  const mail: OrderMailData = {
-    orderNumber: order.orderNumber,
-    customerName: f.firstName,
-    items: lines.map((l) => ({ title: l.artwork.title, variant: l.variant, quantity: l.quantity, unitPrice: l.unitPrice })),
-    shippingCost: shipping,
-    totalAmount: total,
-    address: [
-      `${f.firstName} ${f.lastName}`,
-      f.addressLine1,
-      f.addressLine2 ?? "",
-      `${f.postalCode} ${f.city}`,
-      `${f.country} (${SHIPPING_ZONES[f.zone]})`,
-    ].filter(Boolean),
-    url: user ? `${siteUrl()}/compte` : undefined,
-  };
-  await Promise.all([
-    sendMail({ to: email, subject: `Commande ${order.orderNumber} enregistrée — Lavis Studio`, react: OrderConfirmationEmail({ o: mail }) }),
-    sendMail({
-      to: ARTIST_EMAIL,
-      subject: `💶 Nouvelle commande ${order.orderNumber} (${total.toFixed(2)} €)`,
-      react: SaleAlertEmail({ o: mail, email, adminUrl: `${siteUrl()}/admin/commandes/${order.id}` }),
-      replyTo: email,
-    }),
-  ]);
+  const paymentUrl = await createPaymentRedirect(order.id).catch((e) => {
+    console.error("[stripe] création de session impossible", e);
+    return null;
+  });
+  // Avec Stripe : e-mails envoyés par le webhook une fois le paiement reçu. Sans Stripe : tout de suite.
+  if (!paymentUrl) await sendOrderEmails(order.id, { paid: false });
 
   revalidatePath("/", "layout");
-  const paymentUrl = await createPaymentRedirect({ id: order.id, orderNumber: order.orderNumber, totalAmount: total });
   redirect(paymentUrl ?? `/commande/confirmation/${order.id}`);
 }

@@ -38,6 +38,7 @@ export type OrderMailData = {
   totalAmount: number;
   address: string[];
   url?: string;
+  paid?: boolean;
 };
 
 function OrderLines({ o }: { o: OrderMailData }) {
@@ -57,10 +58,15 @@ function OrderLines({ o }: { o: OrderMailData }) {
 
 export function OrderConfirmationEmail({ o }: { o: OrderMailData }) {
   return (
-    <Layout preview={`Commande ${o.orderNumber} bien reçue`} title={`Merci ${o.customerName}, votre commande est enregistrée`}>
+    <Layout
+      preview={`Commande ${o.orderNumber} ${o.paid ? "confirmée" : "bien reçue"}`}
+      title={`Merci ${o.customerName}, votre commande est ${o.paid ? "confirmée" : "enregistrée"}`}
+    >
       <Text>
-        Référence : <strong>{o.orderNumber}</strong>. Je vous recontacte très vite pour le règlement, puis je prépare votre envoi
-        (expédition sous 3 jours ouvrés après paiement, en pochette rigide).
+        Référence : <strong>{o.orderNumber}</strong>.{" "}
+        {o.paid
+          ? "Votre paiement est bien reçu. Je prépare votre envoi (expédition sous 3 jours ouvrés, en pochette rigide) et vous enverrai le numéro de suivi."
+          : "Je vous recontacte très vite pour le règlement, puis je prépare votre envoi (expédition sous 3 jours ouvrés après paiement, en pochette rigide)."}
       </Text>
       <OrderLines o={o} />
       {o.url && (
@@ -74,7 +80,7 @@ export function OrderConfirmationEmail({ o }: { o: OrderMailData }) {
 
 export function SaleAlertEmail({ o, email, adminUrl }: { o: OrderMailData; email: string; adminUrl: string }) {
   return (
-    <Layout preview={`Nouvelle commande ${o.orderNumber}`} title={`Nouvelle commande ${o.orderNumber}`}>
+    <Layout preview={`Nouvelle commande ${o.orderNumber}`} title={`${o.paid ? "Commande payée" : "Nouvelle commande (non payée)"} ${o.orderNumber}`}>
       <Text>
         Client : {o.customerName} · <Link href={`mailto:${email}`}>{email}</Link>
       </Text>

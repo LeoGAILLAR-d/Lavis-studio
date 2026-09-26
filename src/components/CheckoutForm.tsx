@@ -18,7 +18,19 @@ type Addr = {
   phone: string | null;
 };
 
-export function CheckoutForm({ subtotal, rates, email, address }: { subtotal: number; rates: Rates; email?: string; address?: Addr | null }) {
+export function CheckoutForm({
+  subtotal,
+  rates,
+  email,
+  address,
+  onlinePayment,
+}: {
+  subtotal: number;
+  rates: Rates;
+  email?: string;
+  address?: Addr | null;
+  onlinePayment: boolean;
+}) {
   const [zone, setZone] = useState<ShippingZone>("fr");
   const ship = shippingCost(zone, subtotal, rates);
 
@@ -79,13 +91,27 @@ export function CheckoutForm({ subtotal, rates, email, address }: { subtotal: nu
       <Check
         name="acceptTerms"
         required
-        label="J'ai lu et j'accepte les conditions générales de vente. Rétractation 14 jours (hors sur-mesure)."
+        label={
+          <>
+            J&apos;ai lu et j&apos;accepte les{" "}
+            <a href="/cgv" target="_blank" rel="noopener">
+              conditions générales de vente
+            </a>
+            . Rétractation 14 jours (hors sur-mesure).
+          </>
+        }
       />
-      <p className="small muted">
-        Le paiement en ligne arrive bientôt : après validation, vous recevez un e-mail de confirmation et l&apos;atelier vous contacte pour le
-        règlement avant l&apos;expédition.
-      </p>
-      <SubmitButton pendingLabel="Enregistrement…">Valider ma commande</SubmitButton>
+      {onlinePayment ? (
+        <p className="small muted">Paiement sécurisé par carte bancaire via Stripe. Vous êtes redirigé vers la page de paiement.</p>
+      ) : (
+        <p className="small muted">
+          Après validation, vous recevez un e-mail de confirmation et l&apos;atelier vous contacte pour le règlement avant
+          l&apos;expédition.
+        </p>
+      )}
+      <SubmitButton pendingLabel={onlinePayment ? "Redirection vers le paiement…" : "Enregistrement…"}>
+        {onlinePayment ? `Payer ${eur(subtotal + ship)}` : "Valider ma commande"}
+      </SubmitButton>
     </ActionForm>
   );
 }

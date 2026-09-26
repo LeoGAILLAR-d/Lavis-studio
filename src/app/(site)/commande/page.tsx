@@ -8,6 +8,7 @@ import { getCart } from "@/lib/cart";
 import { eur } from "@/lib/format";
 import { getCurrentUser } from "@/lib/session";
 import { getSettings } from "@/lib/settings";
+import { paymentsEnabled } from "@/lib/payment";
 
 export const metadata: Metadata = { title: "Commande", robots: { index: false } };
 
@@ -36,6 +37,7 @@ export default async function CheckoutPage() {
           rates={s}
           email={user?.email}
           address={address}
+          onlinePayment={paymentsEnabled()}
         />
         <aside className="card pad">
           <h3>Récapitulatif</h3>
