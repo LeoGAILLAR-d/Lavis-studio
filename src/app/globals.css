@@ -398,18 +398,20 @@ p {
 .work .thumb {
   position: relative;
   aspect-ratio: 4 / 3;
-  border: var(--line) solid var(--ink);
-  background: var(--mat);
-  box-shadow: var(--shadow);
+  /* passe-partout : l'œuvre entière, centrée, sans ombre décalée */
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
   overflow: hidden;
-  transition: transform 0.12s, box-shadow 0.12s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .work:hover .thumb {
-  transform: translate(-2px, -2px);
-  box-shadow: 9px 9px 0 var(--ink);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
 }
 .work .thumb img {
-  object-fit: cover;
+  object-fit: contain;
+  padding: 14px;
 }
 .work h3 {
   margin: 16px 0 2px;
@@ -454,10 +456,10 @@ p {
 .viewer .main {
   position: relative;
   cursor: zoom-in;
-  border: var(--line) solid var(--ink);
-  background: var(--mat);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
   padding: 14px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
   display: block;
   width: 100%;
 }
